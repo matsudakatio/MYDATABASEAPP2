@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block content %}
+    <h2>{{ post.title }}</h2>
+    <p>投稿者: {{ post.user.username }}</p>
+    <img src="{{ post.image.url }}" alt="{{ post.title }}" style="max-width: 600px;">
+    <p>{{ post.content|linebreaksbr }}</p>
+    <p>
+        <span class="like-button" data-post-id="{{ post.pk }}">
+            {% if user in post.likes.all %}❤️{% else %}♡{% endif %}
+        </span>
+        <span id="likes-count-{{ post.pk }}">{{ post.total_likes }}</span>
+    </p>
+
+    <script>
+    // (top.htmlと同じJavaScriptコードをここに配置)
+    </script>
+{% endblock %}

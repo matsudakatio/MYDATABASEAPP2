@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1>Posts</h1>
+    <div>
+        <a href="{% url 'posts:top' %}?sort=new">新着順</a> |
+        <a href="{% url 'posts:top' %}?sort=likes">いいね順</a>
+    </div>
+
+    <div class="grid-container">
+        {% for post in posts %}
+            <div class="grid-item">
+                <div class="image-container">
+                    <img src="{{ post.image.url }}" alt="{{ post.title }}">
+                    <a href="{% url 'posts:post_detail' post.pk %}" class="username-overlay">
+                        <span>{{ post.user.username }}</span>
+                    </a>
+                </div>
+                <div class="post-info">
+                    <span class="like-button" data-post-id="{{ post.pk }}">
+                        {% if user in post.likes.all %}❤️{% else %}♡{% endif %}
+                    </span>
+                    <span id="likes-count-{{ post.pk }}">{{ post.likes_count }}</span>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+// いいねボタンがクリックされたときの処理
+document.querySelectorAll('.like-button').forEach(button => {
+    button.addEventListener('click', function() {
+        // aタグのデフォルトの挙動をキャンセル
+        event.stopPropagation();
+        const postId = this.dataset.postId;
+        const csrftoken = getCookie('csrftoken'); // CSRFトークンを取得
+
+        fetch(`/post/${postId}/like/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken,
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            // いいね数を更新
+            document.getElementById(`likes-count-${postId}`).textContent = data.likes_count;
+            // ハートの表示を切り替え
+            this.textContent = data.liked ? '❤️' : '♡';
+        });
+    });
+});
+
+// CSRFトークンを取得する関数
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}
